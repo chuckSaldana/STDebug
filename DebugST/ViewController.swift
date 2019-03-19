@@ -23,7 +23,7 @@ class ViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSour
         "beta2": URL(string: "https://apiqa.onlinecu.com/staging2/api/Configuration")!,
         "bsdc": URL(string: "https://bsdcapi.onlinecu.com/bsdc-test/api/Configuration")!
         ].sorted(by: { return $0.key > $1.key})
-    var configurationList: [(key: String, value: String)] = []
+    var configurationList: [(key: String, value: Any)] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,7 +68,7 @@ class ViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSour
             self.hideLoading()
             if let safeData = data {
                 do {
-                    let jsonResult = try JSONSerialization.jsonObject(with: safeData) as? [String: String]
+                    let jsonResult = try JSONSerialization.jsonObject(with: safeData) as? [String: Any]
 
                     if let safeJsonResult = jsonResult {
                         // process jsonResult
@@ -78,6 +78,7 @@ class ViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSour
                         }
                     } else {
                         // couldn't load JSON, look at error
+                        print("Can't read json data: \(String(data: safeData, encoding: .utf8)!)")
                     }
                 } catch (let error) {
                     // network error
@@ -129,10 +130,14 @@ class ViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSour
         if tableColumn == tableView.tableColumns[0] {
             cell.stringValue = configurationList[row].key
         } else if tableColumn == tableView.tableColumns[1] {
-            cell.stringValue = ""
-            cell.backgroundColor = colorFromHex(hexString: configurationList[row].value, alpha: 1.0)
-        } else {
-            cell.stringValue = configurationList[row].value
+            if let colorHex = configurationList[row].value as? String {
+                cell.stringValue = ""
+                cell.backgroundColor = colorFromHex(hexString: colorHex, alpha: 1.0)
+            } else {
+                cell.stringValue = "null"
+            }
+        } else if tableColumn == tableView.tableColumns[2] {
+            cell.stringValue = configurationList[row].value as? String ?? "null"
         }
     }
 
